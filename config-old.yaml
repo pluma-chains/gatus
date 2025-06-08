@@ -1,0 +1,102 @@
+# BCT Chain Network Status Monitoring Configuration
+web:
+  port: 8080
+
+storage:
+  type: memory
+
+ui:
+  title: "BCT Chain Network Status"
+  header: "BCT Chain Network Monitoring"
+
+endpoints:
+  # BCT Chain Explorer and Web Services
+  - name: bct-explorer
+    group: blockchain-explorer
+    url: "https://scan.bctchain.com/"
+    interval: 2m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 3000"
+      - "[CERTIFICATE_EXPIRATION] > 72h"
+
+  # BCT Chain RPC Endpoints (Common blockchain RPC ports)
+  - name: bct-mainnet-rpc
+    group: rpc-nodes
+    url: "https://rpc.bctchain.com"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 2000"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "jsonrpc": "2.0",
+        "method": "eth_blockNumber",
+        "params": [],
+        "id": 1
+      }
+
+  - name: bct-api-health
+    group: api-services
+    url: "https://api.bctchain.com/health"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 1500"
+
+  # Alternative RPC endpoints (trying common blockchain patterns)
+  - name: bct-rpc-8545
+    group: rpc-nodes
+    url: "https://scan.bctchain.com:8545"
+    interval: 2m
+    conditions:
+      - "[STATUS] == 200 || [STATUS] == 405" # Some RPC endpoints return 405 for GET requests
+      - "[RESPONSE_TIME] < 5000"
+
+  # BCT Chain WebSocket (if available)
+  - name: bct-websocket
+    group: websocket-services
+    url: "wss://ws.bctchain.com"
+    interval: 3m
+    conditions:
+      - "[CONNECTED] == true"
+
+  # DNS Resolution for BCT Chain services
+  - name: bct-dns-resolution
+    group: infrastructure
+    url: "8.8.8.8"
+    interval: 5m
+    dns:
+      query-name: "scan.bctchain.com"
+      query-type: "A"
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+      - "[RESPONSE_TIME] < 1000"
+
+  # ICMP Ping to BCT Chain infrastructure
+  - name: bct-network-ping
+    group: infrastructure
+    url: "icmp://scan.bctchain.com"
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+      - "[RESPONSE_TIME] < 500"
+
+  # Certificate monitoring for BCT Chain domains
+  - name: bct-ssl-certificate
+    group: security
+    url: "https://scan.bctchain.com/"
+    interval: 6h
+    conditions:
+      - "[CERTIFICATE_EXPIRATION] > 168h" # Alert if certificate expires within 7 days
+      - "[STATUS] == 200"
+
+alerting:
+  discord:
+    webhook-url: "${DISCORD_WEBHOOK_URL}"
+    default-alert:
+      description: "BCT Chain network issue detected"
+      failure-threshold: 3
+      success-threshold: 2

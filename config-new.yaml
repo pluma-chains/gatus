@@ -34,7 +34,7 @@ endpoints:
     url: "https://rpc.bctchain.com"
     interval: 1m
     conditions:
-      - "[STATUS] == 200 || [STATUS] == 405"
+      - "[STATUS] == 200 || [STATUS] == 405"  # RPC endpoints often return 405 for GET requests
       - "[RESPONSE_TIME] < 3000"
 
   # BCT Chain Block Number Query
@@ -56,11 +56,57 @@ endpoints:
         "id": 1
       }
 
+  # BCT Chain Network ID Verification
+  - name: bct-network-id
+    group: blockchain-data
+    url: "https://rpc.bctchain.com"
+    interval: 5m
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].result != null"
+      - "[RESPONSE_TIME] < 3000"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "jsonrpc": "2.0",
+        "method": "net_version",
+        "params": [],
+        "id": 1
+      }
+
+  # BCT Chain Gas Price Check
+  - name: bct-gas-price
+    group: blockchain-data
+    url: "https://rpc.bctchain.com"
+    interval: 2m
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].result != null"
+      - "[RESPONSE_TIME] < 3000"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "jsonrpc": "2.0",
+        "method": "eth_gasPrice",
+        "params": [],
+        "id": 1
+      }
+
   # BCT Chain SSL Certificate Monitoring
   - name: bct-ssl-certificate
     group: security
     url: "https://rpc.bctchain.com"
     interval: 6h
     conditions:
-      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "[CERTIFICATE_EXPIRATION] > 168h"  # Alert if certificate expires within 7 days
       - "[STATUS] == 200 || [STATUS] == 405"
+
+alerting:
+  discord:
+    webhook-url: "${DISCORD_WEBHOOK_URL}"
+    default-alert:
+      description: "BCT Chain RPC issue detected"
+      failure-threshold: 3
+      success-threshold: 2
