@@ -1,6 +1,6 @@
 # Build the go application into a binary
 FROM golang:alpine AS builder
-RUN apk --update add ca-certificates sqlite
+RUN apk --update add ca-certificates sqlite gcc musl-dev
 WORKDIR /app
 COPY . ./
 RUN go mod tidy
