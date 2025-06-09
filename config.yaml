@@ -4,10 +4,22 @@ web:
 
 storage:
   type: memory
+  caching: true
 
 ui:
   title: "BCT Chain Network Status"
   header: "BCT Chain Network Monitoring"
+
+# Telegram Bot Alerting Configuration
+alerting:
+  telegram:
+    token: "${TELEGRAM_BOT_TOKEN}"
+    id: "${TELEGRAM_CHAT_ID}"
+    default-alert:
+      description: "BCT Chain endpoint status change"
+      send-on-resolved: true
+      failure-threshold: 2
+      success-threshold: 2
 
 endpoints:
   # BCT Chain Main RPC Endpoint
@@ -15,8 +27,10 @@ endpoints:
     group: rpc-nodes
     url: "https://rpc.bctchain.com"
     interval: 30s
+    method: POST
     conditions:
       - "[STATUS] == 200"
+      - "[BODY].result != null"
       - "[RESPONSE_TIME] < 2000"
     headers:
       Content-Type: application/json
@@ -27,21 +41,35 @@ endpoints:
         "params": [],
         "id": 1
       }
+    alerts:
+      - type: telegram
+        description: "🔴 BCT Chain Main RPC is DOWN"
+        send-on-resolved: true
+        failure-threshold: 2
+        success-threshold: 2
 
-  # BCT Chain RPC Health Check (GET request)
+  # BCT Chain RPC Health Check (HEAD request to check connectivity)
   - name: bct-rpc-health
     group: rpc-nodes
     url: "https://rpc.bctchain.com"
     interval: 1m
+    method: HEAD
     conditions:
-      - "[STATUS] == 200 || [STATUS] == 405"
+      - "[STATUS] == 405"
       - "[RESPONSE_TIME] < 3000"
+    alerts:
+      - type: telegram
+        description: "🔴 BCT Chain RPC Health Check FAILED"
+        send-on-resolved: true
+        failure-threshold: 2
+        success-threshold: 2
 
   # BCT Chain Block Number Query
   - name: bct-block-query
     group: blockchain-data
     url: "https://rpc.bctchain.com"
     interval: 1m
+    method: POST
     conditions:
       - "[STATUS] == 200"
       - "[BODY].result != null"
@@ -55,12 +83,25 @@ endpoints:
         "params": [],
         "id": 1
       }
+    alerts:
+      - type: telegram
+        description: "🔴 BCT Chain Block Query FAILED"
+        send-on-resolved: true
+        failure-threshold: 2
+        success-threshold: 2
 
   # BCT Chain SSL Certificate Monitoring
   - name: bct-ssl-certificate
     group: security
     url: "https://rpc.bctchain.com"
     interval: 6h
+    method: HEAD
     conditions:
       - "[CERTIFICATE_EXPIRATION] > 168h"
-      - "[STATUS] == 200 || [STATUS] == 405"
+      - "[STATUS] == 405"
+    alerts:
+      - type: telegram
+        description: "⚠️ BCT Chain SSL Certificate expiring soon"
+        send-on-resolved: true
+        failure-threshold: 1
+        success-threshold: 1

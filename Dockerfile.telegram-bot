@@ -1,0 +1,34 @@
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r botuser && useradd -r -g botuser -u 1000 botuser
+
+# Set working directory
+WORKDIR /app
+
+# Install Python dependencies
+RUN pip install --no-cache-dir requests
+
+# Copy bot script
+COPY telegram-bot.py /app/telegram-bot.py
+
+# Create logs directory
+RUN mkdir -p /logs && chown -R botuser:botuser /logs /app
+
+# Switch to non-root user
+USER botuser
+
+# Set executable permissions
+RUN chmod +x /app/telegram-bot.py
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python3 -c "import requests; requests.get('https://api.telegram.org/bot' + __import__('os').getenv('TELEGRAM_BOT_TOKEN') + '/getMe', timeout=5)"
+
+# Run the bot
+CMD ["python3", "/app/telegram-bot.py"]

@@ -12,10 +12,37 @@ node_modules
 # Go
 /vendor
 
-# Misc
+# Database and data files
+data/
 *.db
 *.db-shm
 *.db-wal
-gatus
+*.sqlite
+*.sqlite3
+
+# Environment and config files
+.env
+.env.local
+.env.production
 config/config.yml
 config.yaml
+.telegram_bot_token
+.telegram_chat_id
+
+# Build artifacts
+gatus
+dist/
+build/
+target/
+
+# Logs and temporary files
+*.log
+logs/
+tmp/
+temp/
+.tmp/
+status_report_*.log
+telegram_*.log
+
+# Docker volumes
+docker-volumes/

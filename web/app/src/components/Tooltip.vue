@@ -102,29 +102,60 @@ export default {
 <style>
 #tooltip {
   position: fixed;
-  background-color: white;
-  border: 1px solid lightgray;
-  border-radius: 4px;
-  padding: 6px;
+  z-index: 9999; /* High z-index to ensure tooltip appears above all other components */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px;
   font-size: 13px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  pointer-events: none; /* Prevent tooltip from interfering with mouse events */
 }
 
 #tooltip code {
-  color: #212529;
-  line-height: 1;
+  color: #1f2937;
+  line-height: 1.4;
+  background: rgba(243, 244, 246, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
 }
 
 #tooltip .tooltip-title {
-  font-weight: bold;
-  margin-bottom: 0;
+  font-weight: 600;
+  margin-bottom: 4px;
   display: block;
+  color: #374151;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 #tooltip .tooltip-title {
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 #tooltip > .tooltip-title:first-child {
   margin-top: 0;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  #tooltip {
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+  }
+  
+  #tooltip code {
+    color: #e5e7eb;
+    background: rgba(55, 65, 81, 0.8);
+  }
+  
+  #tooltip .tooltip-title {
+    color: #d1d5db;
+  }
 }
 </style>
