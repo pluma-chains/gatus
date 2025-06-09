@@ -64,8 +64,8 @@ services:
       - PORT=8080
       - GATUS_CONFIG_PATH=/config/config.yaml
       - GATUS_DATABASE_PATH=/data/gatus.db
-      - TELEGRAM_BOT_TOKEN=7524746512:AAEpWqB9b0JJ32Fl5SG3M92UkGReEmtw8vg
-      - TELEGRAM_CHAT_ID=407303553
+      - TELEGRAM_BOT_TOKEN=
+      - TELEGRAM_CHAT_ID=
     user: "1000:1000"
     security_opt:
       - no-new-privileges:true
